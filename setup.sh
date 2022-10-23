@@ -81,3 +81,13 @@ echo "Creating a sysadmin user..."
 
 ckan -c /etc/ckan/default/ckan.ini user add admin email=admin@localhost password=test1234
 ckan -c /etc/ckan/default/ckan.ini sysadmin add admin
+
+echo "======================================"
+echo "Installing custom extension..."
+
+python -m pip install -e '/home/vagrant/project'
+
+crudini --inplace --set --list --list-sep=' ' '/etc/ckan/default/ckan.ini' \
+                                         'app:main' \
+                                         'ckan.plugins' \
+                                         $CKAN_PLUGIN
