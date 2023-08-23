@@ -18,12 +18,9 @@ Vagrant.configure("2") do |config|
 
   config.vm.network "private_network", ip: "192.168.33.60"
 
-  config.vm.provision "shell", path: "setup.sh"
+  config.vm.provision "shell", path: "setup.sh", privileged: false, env: {"CKAN_PLUGIN": CKAN_PLUGIN}
   Dir.glob('extensions/*.sh') do |ckanext|
-    config.vm.provision "shell", path: ckanext, env: {"CKAN_PLUGIN": CKAN_PLUGIN}
+    config.vm.provision "shell", path: ckanext, privileged: false
   end
 
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "4096"
-  end
 end

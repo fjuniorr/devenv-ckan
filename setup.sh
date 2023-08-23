@@ -1,11 +1,13 @@
 #!/bin/bash
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get install -y crudini
+sudo apt-get install -y crudini
 
 echo "======================================"
 echo "Installing CKAN into a Python virtual environment..."
 
+sudo mkdir -p /usr/lib/ckan/default
+sudo chown vagrant /usr/lib/ckan/default
 python3 -m venv /usr/lib/ckan/default
 . /usr/lib/ckan/default/bin/activate
 python -m pip install setuptools==44.1.0
@@ -31,14 +33,14 @@ sed -i 's/ckan_default:pass/ckan_default:test1234/g' /etc/ckan/default/ckan.ini
 
 echo "Setting up Solr..."
 
-sed -i 's/port="8080"/port="8983"/g' /etc/tomcat9/server.xml
-mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.bak
-ln -s /usr/lib/ckan/default/src/ckan/ckan/config/solr/schema.xml /etc/solr/conf/schema.xml
+sudo sed -i 's/port="8080"/port="8983"/g' /etc/tomcat9/server.xml
+sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.bak
+sudo ln -s /usr/lib/ckan/default/src/ckan/ckan/config/solr/schema.xml /etc/solr/conf/schema.xml
 crudini --inplace --set '/etc/ckan/default/ckan.ini' \
                         'app:main' \
                         'solr_url' \
                         'http://127.0.0.1:8983/solr'
-service tomcat9 restart
+sudo service tomcat9 restart
 
 echo "Linking to who.ini..."
 
@@ -50,13 +52,13 @@ ckan -c /etc/ckan/default/ckan.ini db init
 
 echo "Configuring FileStore..."
 
-mkdir -p /var/lib/ckan/default
+sudo mkdir -p /var/lib/ckan/default
 crudini --inplace --set '/etc/ckan/default/ckan.ini' \
                         'app:main' \
                         'ckan.storage_path' \
                         '/var/lib/ckan/default'
 
-chown -R vagrant /var/lib/ckan/default
+sudo chown -R vagrant /var/lib/ckan/default
 chmod u+rwx /var/lib/ckan/default
 
 echo "Setting up DataStore..."
@@ -86,6 +88,8 @@ echo "======================================"
 echo "Installing custom extension..."
 
 python -m pip install -e '/home/vagrant/project'
+
+python -m pip install -r '/home/vagrant/project/requirements.txt'
 
 crudini --inplace --set --list --list-sep=' ' '/etc/ckan/default/ckan.ini' \
                                          'app:main' \
